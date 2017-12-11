@@ -3,46 +3,42 @@
 fs = require 'fs-plus'
 path = require 'path'
 
-module.exports = new class PullRequests
+default_gerritrc = '/root/.gerritrc'
+
+module.exports = new class GerritComments
   config:
-    githubPollingInterval:
-      title: 'GitHub API polling interval'
+    gerritConfigFile:
+      type: 'string'
+      default: default_gerritrc
+      title: 'Gerrit(s) configuration file'
+      description: 'The location of  your configuration file.'
+      order: 1
+    pollingInterval:
+      title: 'API polling interval'
       description: 'How often (in seconds) should updated comments be retreived'
       type: 'number'
       default: 60
       minimum: 20
-      order: 1
-    githubAuthorizationToken:
-      title: 'GitHub authorization token (optional)'
-      description: 'Useful for retreiving private repositories'
-      type: 'string'
-      default: ''
       order: 2
-    githubRootUrl:
-      title: 'Enterprise GitHub Url (optional)'
-      description: 'Specify the GitHub Enterprise root URL (ie https://example.com/api/v3)'
-      type: 'string'
-      default: 'https://api.github.com'
-      order: 3
 
   treeViewDecorator: null # Delayed instantiation
 
   activate: ->
-    require('atom-package-deps').install('pull-requests')
+    require('atom-package-deps').install('gerrit-comments')
     @subscriptions = new CompositeDisposable
-    @ghClient ?= require('./gh-client')
-    @ghClient.initialize()
+    @gerritClient ?= require('./gerrit-client')
+    @gerritClient.initialize()
 
     @treeViewDecorator ?= require('./tree-view-decorator')
     @treeViewDecorator.initialize()
 
-    @pullRequestLinter ?= require('./pr-linter')
-    @pullRequestLinter.initialize()
+    @gerritLinter ?= require('./gerrit-linter')
+    @gerritLinter.initialize()
 
   deactivate: ->
-    @ghClient?.destroy()
+    @gerritClient?.destroy()
     @treeViewDecorator?.destroy()
-    @pullRequestLinter.destroy()
+    @gerritLinter.destroy()
     @subscriptions.destroy()
 
   consumeLinter: (registry) ->
@@ -50,9 +46,6 @@ module.exports = new class PullRequests
 
       registry = atom.packages.getLoadedPackage('linter').mainModule.provideIndie()
 
-      # HACK because of bug in `linter` package
-      registry.emit = registry.emitter.emit.bind(registry.emitter)
-
-      linter = registry.register {name: 'Pull Request'}
-      @pullRequestLinter.setLinter(linter)
+      linter = registry({name: 'Gerrit Comments'})
+      @gerritLinter.setLinter(linter)
       @subscriptions.add(linter)

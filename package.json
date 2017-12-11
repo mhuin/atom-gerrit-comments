@@ -1,14 +1,14 @@
 {
-  "name": "pull-requests",
+  "name": "gerrit-comments",
   "main": "./lib/init",
   "version": "0.1.0",
-  "description": "Show Pull Request comments inside Atom",
+  "description": "Show gerrit review comments inside Atom",
   "keywords": [
-    "github",
-    "pull request",
+    "gerrit",
+    "code review",
     "comments"
   ],
-  "repository": "https://github.com/philschatz/atom-pull-requests",
+  "repository": "https://github.com/mhuin/atom-gerrit-comments",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
@@ -19,7 +19,7 @@
   "consumedServices": {
     "linter-indie": {
       "versions": {
-        "1.0.0": "consumeLinter"
+        "2.0.0": "consumeLinter"
       }
     }
   },
@@ -27,10 +27,9 @@
     "atom-package-deps": "^2.0.3",
     "atom-space-pen-views": "^2.2.0",
     "fs-plus": "^2.8.1",
-    "gfm-linkify": "^0.1.0",
-    "keytar": "^3.0.2",
-    "octokat": "^0.4.13",
-    "ultramarked": "^1.7.0",
+    "git-log-utils": "^0.2.3",
+    "js-yaml": "^3.10.0",
+    "request-promise": "^4.2.2",
     "underscore-plus": "^1.6.6"
   }
 }

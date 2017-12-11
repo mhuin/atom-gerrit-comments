@@ -1,21 +1,14 @@
-getNameWithOwner = (repo) ->
-  url  = repo.getOriginURL()
-  return null unless url?
-  return /([^\/:]+)\/([^\/]+)$/.exec(url.replace(/\.git$/, ''))[0]
+GitLogUtils = require 'git-log-utils'
+
 
 module.exports =
-  getRepoInfo: ->
+  getPatchsetInfo: ->
     repo = atom.project.getRepositories()[0]
-    return {} unless repo
+    return [] unless repo
 
-    [repoOwner, repoName] = getNameWithOwner(repo).split('/')
+    gerritRemote = repo.getConfigValue('remote.gerrit.url')
+    return [] unless gerritRemote
 
-    {branch} = repo
-    # localSha = repo.getReferenceTarget(branch)
-
-    if branch
-      unless /^refs\/heads\//.test(branch)
-        throw new Error('unexpected branch prefix:' + branch)
-      branchName = repo.getShortHead(branch)
-
-    {repoOwner, repoName, branchName}
+    rawInfo = GitLogUtils.getCommitHistory(repo.repo.workingDirectory)[0]
+    changeId = /Change-Id: (I[0-9a-fA-F]+)$/.exec(rawInfo['body'])
+    return [changeId[1], rawInfo['id'], gerritRemote]

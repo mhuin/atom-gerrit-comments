@@ -1,5 +1,5 @@
 _ = require 'underscore-plus'
-ghClient = require './gh-client'
+gerritClient = require './gerrit-client'
 Polling = require './polling'
 
 # This is a terrible implementation.
@@ -40,7 +40,7 @@ module.exports = new class TreeViewDecorator
     @polling.set(UPDATE_INTERVAL)
     @polling.onDidTick () => @_tick()
     @polling.start()
-    ghClient.onDidUpdate (comments) => @updateTreeView(comments)
+    gerritClient.onDidUpdate (comments) => @updateTreeView(comments)
 
   destroy: ->
     @fileCache = null
@@ -69,12 +69,12 @@ module.exports = new class TreeViewDecorator
 
     # Build a map of all the paths and how many comments are in them
     @pathsAndCommentCount = {}
-    comments.forEach (comment) =>
+    for path, cs of comments
       # Add a comment icon on the file and
       # mark all the directories up the tree so the files are easy to find
       # TODO: on Win32 convert '/' to backslash
       acc = ''
-      comment.path.split('/').forEach (segment) =>
+      path.split('/').forEach (segment) =>
         if acc
           acc += "/#{segment}"
         else
