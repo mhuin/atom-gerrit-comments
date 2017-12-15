@@ -29,6 +29,7 @@
     "fs-plus": "^2.8.1",
     "git-log-utils": "^0.2.3",
     "js-yaml": "^3.10.0",
+    "request": "^2.83.0",
     "request-promise": "^4.2.2",
     "underscore-plus": "^1.6.6"
   }

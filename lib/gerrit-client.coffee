@@ -3,42 +3,12 @@ fs = require 'fs'
 _ = require 'underscore-plus'
 {getPatchsetInfo} = require './helpers'
 Polling = require './polling'
-Dialog = require './dialog'
-rp = require 'request-promise'
 yaml = require 'js-yaml'
+GerritAPI = require './gerrit-api'
 
 
 CONFIG_POLLING_INTERVAL = 'gerrit-comments.pollingInterval'
 CONFIG_GERRITRC = 'gerrit-comments.gerritConfigFile'
-
-
-class GerritAPI
-    constructor: (baseURL, user, password) ->
-        @gerritURI = baseURL
-        @user = user
-        @password = password
-        n1 = baseURL.indexOf('http://')
-        n2 = baseURL.indexOf('https://')
-        if (n1 >= 0 and @password.length > 0)
-            @baseURL = 'http://' + @user + ':' + @password + '@' + @gerritURI.slice(7, -1)
-        else if (n2 >= 0 and @password.length > 0)
-            @baseURL = 'https://' + @user + ':' + @password + '@' + @gerritURI.slice(8, -1)
-        else if (n1 < 0 and n2 < 0 and @password.length > 0)
-            @baseURL = 'http://' + @user + ':' + @password + '@' + @gerritURI
-        else
-            @baseURL = @gerritURI
-
-    getComments: (reviewId, patchset) ->
-        queryURL = @baseURL + '/changes/' + reviewId + '/revisions/' + patchset + '/comments/'
-        options = {
-            uri: queryURL,
-            transform: (body) ->
-                return JSON.parse(body.slice(4, -1))
-        }
-        return rp(options)
-            .catch((error) ->
-                console.log(error))
-
 
 
 module.exports = new class GerritClient
