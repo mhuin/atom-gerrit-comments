@@ -31,3 +31,40 @@ module.exports = class GerritAPI
     getComments: (reviewId, patchset) ->
         queryURL = @baseURL + '/changes/' + reviewId + '/revisions/' + patchset + '/comments/'
         return @_query(queryURL)
+
+    _cleanVotes: (all) ->
+        votes = {}
+        for vote in all
+            val = String(vote.value)
+            votes[val] = (votes[val] || 0) + 1
+        return votes
+
+    getLabels: (reviewId, patchset) ->
+        queryURL = @baseURL + '/changes/' + reviewId + '/revisions/' + patchset + '/review/'
+        bURL = @gerritURI
+        return @_query(queryURL).then((response) ->
+            _labels = response.labels
+            labels = {
+                'labels': {'Code-Review': {}, 'Verified': {}, 'Workflow': {}},
+                'uri': bURL + '/#/c/' + String(response._number) + '/'}
+            for label in ['Code-Review', 'Verified', 'Workflow']
+                _all = _labels[label].all
+                for vote in _all
+                    if (vote.value?)
+                        val = ''
+                        if (vote.value > 0)
+                            val += '+'
+                        val += String(vote.value)
+
+                        if (not labels['labels'][label][val]?)
+                            labels['labels'][label][val] = []
+                        labels['labels'][label][val].push(vote.username)
+            return labels
+        )
+
+    getReviewURI: (reviewId) ->
+        queryURL = @baseURL + '/changes/' + reviewId
+        bURL = @gerritURI
+        return @_query(queryURL).then((response) ->
+            bURL + '/#/c/' + String(response._number) + '/'
+        )

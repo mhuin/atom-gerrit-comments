@@ -114,8 +114,11 @@ module.exports = new class GerritClient
       @gapi = @updateGerritApi()
       @polling.forceIfStarted()
 
-  onDidUpdate: (cb) ->
-    @emitter.on('did-update', cb)
+  onDidUpdateComments: (cb) ->
+    @emitter.on('did-update-comments', cb)
+
+  onDidUpdateStatusbar: (cb) ->
+    @emitter.on('did-update-statusbar', cb)
 
   _fetchComments: ->
     unless @changeId and @revision and @gerritRemote
@@ -123,13 +126,33 @@ module.exports = new class GerritClient
       return Promise.resolve([])
     return @gapi.getComments(@changeId, @revision)
 
+  _fetchLabels: ->
+    unless @changeId and @revision and @gerritRemote
+      # Case 1: This is not even from a gerrit
+      return Promise.resolve([])
+    return @gapi.getLabels(@changeId, @revision)
+
   _tick: ->
     @updateRepoBranch() # Sometimes the branch name does not update
 
     if @changeId and @revision and @gerritRemote
       @_fetchComments()
       .then (comments) =>
-        @emitter.emit('did-update', comments)
+        @emitter.emit('did-update-comments', comments)
+      .then undefined, (err) =>
+        try
+          # yield [] so consumers still run
+          return []
+        catch error
+
+          atom.notifications.addError 'Error fetching Pull Request data from GitHub',
+            dismissable: true
+            detail: 'Make sure you are connected to the internet?'
+        # yield [] so consumers still run
+        []
+      @_fetchLabels()
+      .then (labels) =>
+        @emitter.emit('did-update-statusbar', labels)
       .then undefined, (err) =>
         try
           # yield [] so consumers still run
@@ -143,4 +166,5 @@ module.exports = new class GerritClient
         []
     else
       # No gerrit info
-      @emitter.emit 'did-update', []
+      @emitter.emit 'did-update-comments', []
+      @emitter.emit 'did-update-statusbar', {}

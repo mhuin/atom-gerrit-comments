@@ -34,12 +34,19 @@ module.exports = new class GerritComments
 
     @gerritLinter ?= require('./gerrit-linter')
     @gerritLinter.initialize()
+    @statusBar ?= require('./status-bar/element')
+    @statusBar.initialize()
 
   deactivate: ->
     @gerritClient?.destroy()
     @treeViewDecorator?.destroy()
     @gerritLinter.destroy()
     @subscriptions.destroy()
+    @statusBarTile?.destroy()
+
+  consumeStatusBar: (statusBar) ->
+    @statusBarTile = statusBar.addLeftTile
+        item: atom.views.getView(@statusBar.view), priority: 5
 
   consumeLinter: (registry) ->
     atom.packages.activate('linter').then =>
