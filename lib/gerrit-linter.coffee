@@ -19,7 +19,7 @@ simplifyHtml = (html) ->
 module.exports = new class # This only needs to be a class to bind lint()
 
   initialize: ->
-    gerritClient.onDidUpdate (comments) => @poll(comments)
+    gerritClient.onDidUpdateComments (comments) => @poll(comments)
 
   destroy: ->
 

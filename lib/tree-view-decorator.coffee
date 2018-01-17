@@ -40,7 +40,7 @@ module.exports = new class TreeViewDecorator
     @polling.set(UPDATE_INTERVAL)
     @polling.onDidTick () => @_tick()
     @polling.start()
-    gerritClient.onDidUpdate (comments) => @updateTreeView(comments)
+    gerritClient.onDidUpdateComments (comments) => @updateTreeView(comments)
 
   destroy: ->
     @fileCache = null
